@@ -184,5 +184,5 @@ Potential areas for enhancement:
 
 ## Acknowledgments
 
-This project uses the MIT-BIH Arrhythmia Database from PhysioNet (https://physionet.org/content/mitdb/1.0.0/) and ramp framework (https://paris-saclay-cds.github.io/ramp-docs/ramp-workflow/stable/index.html)
+This project uses the MIT-BIH Arrhythmia Database from PhysioNet https://physionet.org/content/mitdb/1.0.0/ and ramp framework https://paris-saclay-cds.github.io/ramp-docs/ramp-workflow/stable/index.html
 
