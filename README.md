@@ -21,17 +21,27 @@ Accurate classification of heartbeats is essential for:
 
 ### Install
 
-To run a submission and the notebook you will need the dependencies listed in `requirements.txt`. You can install the dependencies with the following command-line:
+To run a submission and the notebook, you will need to install the required dependencies. You have two options:
+
+#### Option 1: Using pip
+
+You can install the dependencies listed in `requirements.txt` with the following command:
 
 ```bash
 pip install -U -r requirements.txt
 ```
 
-If you are using `conda`, we provide an `environment.yml` file for similar usage.
+#### Option 2: Using conda
 
-### Challenge description
+If you prefer using conda, you can create an environment with all the required dependencies:
 
-Get started on this RAMP with the [dedicated notebook](ecg_heartbeat_starting_kit.ipynb).
+```bash
+conda env create -f environment.yml
+conda activate ecg-heartbeat-classification
+```
+
+This will create a new conda environment named `ecg-heartbeat-classification` with all the necessary packages installed.
+
 
 ### Test a submission
 
@@ -139,6 +149,7 @@ To ensure robust evaluation, the challenge implements patient-wise cross-validat
 │   └── starting_kit/           # Basic feature extraction
 │       └── estimator.py        # Implementation of the baseline pipeline
 ├── .gitignore                  # Git ignore file
+├── environment.yaml            # Yaml file for conda users
 ├── problem.py                  # Core functionality for data processing
 ├── README.md                   # Project documentation
 └── requirements.txt            # Project dependencies
@@ -157,6 +168,8 @@ Potential areas for enhancement:
 3. **Explainability**: Add model interpretation to understand important features
 4. **Real-time Classification**: Optimize for real-time processing
 5. **Cross-database Validation**: Test on additional ECG databases
+
+
 
 ## Acknowledgments
 
