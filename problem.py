@@ -2,6 +2,8 @@ import os
 import numpy as np
 import rampwf as rw
 import wfdb
+from collections import defaultdict
+from sklearn.model_selection import StratifiedGroupKFold
 
 # Problem definition
 problem_title = 'ECG Heartbeat Classification from MIT-BIH Arrhythmia Database'
@@ -39,39 +41,22 @@ workflow = rw.workflows.Estimator()
 score_types = [
     rw.score_types.Accuracy(name='accuracy', precision=4),
     rw.score_types.F1Above(name='f1_macro', precision=4),
-    rw.score_types.NegativeLogLikelihood(name='nll', precision=4),
+    rw.score_types.BalancedAccuracy(name='Balanced Accuracy', precision=4),
 ]
 
 def get_cv(X, y):
-    """Return cross-validation splits for training."""
+    """Return stratified cross-validation splits for training."""
     # Load record IDs to ensure patient-wise splitting
     data_path = os.path.join('.', 'data')
     record_ids = np.load(os.path.join(data_path, 'record_ids.npy'))
     record_ids = record_ids[:len(y)]  # Ensure matching length
     
-    # Get unique patient IDs
-    unique_records = np.unique(record_ids)
-    
-    # Create 5-fold cross-validation
-    cv = []
+    # Use StratifiedGroupKFold from scikit-learn for stratified patient-wise splitting
     n_splits = 5
+    cv = StratifiedGroupKFold(n_splits=n_splits, shuffle=True, random_state=42)
     
-    # Shuffle patient IDs
-    np.random.seed(42)
-    np.random.shuffle(unique_records)
-    
-    # Split into folds
-    folds = np.array_split(unique_records, n_splits)
-    
-    # Create train/test indices for each fold
-    for i in range(n_splits):
-        test_records = folds[i]
-        train_records = np.concatenate([folds[j] for j in range(n_splits) if j != i])
-        
-        # Get indices for train and test
-        test_indices = np.where(np.isin(record_ids, test_records))[0]
-        train_indices = np.where(np.isin(record_ids, train_records))[0]
-        
+    # Return the stratified splits
+    for train_indices, test_indices in cv.split(X, y, groups=record_ids):
         yield train_indices, test_indices
 
 def download_mitbih_data():
@@ -198,45 +183,132 @@ def _read_data(path):
     
     return X, y
 
+def stratified_group_split(X, y, groups, test_size=0.3, random_state=42):
+    """
+    Custom function to perform a stratified group split, ensuring that:
+    1. The same groups (patients) are not in both train and test
+    2. Class distribution is preserved as much as possible
+    
+    Parameters:
+    -----------
+    X : array-like
+        Features
+    y : array-like
+        Target labels
+    groups : array-like
+        Group identifiers (patient/record IDs)
+    test_size : float
+        Proportion of data to use for testing
+    random_state : int
+        Random seed for reproducibility
+        
+    Returns:
+    --------
+    train_mask, test_mask : boolean arrays
+        Masks to apply to the original data
+    """
+    # Get unique groups and their class distributions
+    unique_groups = np.unique(groups)
+    np.random.seed(random_state)
+    np.random.shuffle(unique_groups)
+    
+    # Calculate overall class distribution
+    unique_classes, overall_class_counts = np.unique(y, return_counts=True)
+    overall_class_dist = overall_class_counts / len(y)
+    
+    # For each group, get the class distribution
+    group_class_counts = defaultdict(lambda: np.zeros(len(unique_classes), dtype=int))
+    for group in unique_groups:
+        group_mask = (groups == group)
+        group_y = y[group_mask]
+        for i, cls in enumerate(unique_classes):
+            group_class_counts[group][i] = np.sum(group_y == cls)
+    
+    # Greedy algorithm to select groups for test set while maintaining distribution
+    test_groups = []
+    train_groups = list(unique_groups)  # Start with all groups in train
+    test_count = np.zeros(len(unique_classes), dtype=int)
+    
+    # Target counts for test set
+    target_test_count = overall_class_counts * test_size
+    
+    # Keep selecting groups until we reach desired test size for all classes
+    while len(train_groups) > 0 and np.any(test_count < target_test_count):
+        best_group = None
+        best_fit = float('inf')
+        
+        for group in train_groups:
+            # Calculate how this group would affect the test distribution
+            tentative_test_count = test_count + group_class_counts[group]
+            # Check if adding this group would exceed target for any class
+            if np.any(tentative_test_count > target_test_count * 1.1):  # Allow 10% overflow
+                continue
+                
+            # Calculate the fit as the sum of squared differences from target
+            fit = np.sum(((tentative_test_count / np.sum(tentative_test_count) if np.sum(tentative_test_count) > 0 else 0) - 
+                           overall_class_dist)**2)
+            
+            if fit < best_fit:
+                best_fit = fit
+                best_group = group
+        
+        # If we found a good group, add it to test set
+        if best_group is not None:
+            test_groups.append(best_group)
+            train_groups.remove(best_group)
+            test_count += group_class_counts[best_group]
+        else:
+            # If no suitable group found, just break
+            break
+    
+    # Create masks
+    test_mask = np.isin(groups, test_groups)
+    train_mask = ~test_mask
+    
+    # Print statistics
+    print(f"Train set: {np.sum(train_mask)} samples, Test set: {np.sum(test_mask)} samples")
+    print("Class distribution in train set:")
+    train_class_counts = np.zeros(len(unique_classes), dtype=int)
+    for i, cls in enumerate(unique_classes):
+        train_class_counts[i] = np.sum(y[train_mask] == cls)
+        print(f"Class {cls}: {train_class_counts[i]} ({train_class_counts[i]/np.sum(train_mask)*100:.2f}%)")
+    
+    print("Class distribution in test set:")
+    for i, cls in enumerate(unique_classes):
+        test_class_count = np.sum(y[test_mask] == cls)
+        print(f"Class {cls}: {test_class_count} ({test_class_count/np.sum(test_mask)*100:.2f}%)")
+    
+    return train_mask, test_mask
+
 def get_train_data(path='.'):
-    """Get the training data."""
+    """Get the training data using stratified split."""
     X, y = _read_data(path)
     
-    # Split data into train/test
+    # Get record IDs for stratified group split
     data_path = os.path.join(path, 'data')
     record_ids = np.load(os.path.join(data_path, 'record_ids.npy'))
-    unique_records = np.unique(record_ids)
+    record_ids = record_ids[:len(y)]  # Ensure matching length
     
-    # Train/test split by patient ID
-    np.random.seed(42)
-    np.random.shuffle(unique_records)
-    split_idx = int(len(unique_records) * 0.7)
-    train_records = unique_records[:split_idx]
+    # Perform stratified split
+    train_mask, _ = stratified_group_split(X, y, record_ids, test_size=0.3, random_state=42)
     
-    # Create mask for training data
-    train_mask = np.isin(record_ids, train_records)
     X_train = X[train_mask]
     y_train = y[train_mask]
     
     return X_train, y_train
 
 def get_test_data(path='.'):
-    """Get the test data."""
+    """Get the test data using stratified split."""
     X, y = _read_data(path)
     
-    # Split data into train/test
+    # Get record IDs for stratified group split
     data_path = os.path.join(path, 'data')
     record_ids = np.load(os.path.join(data_path, 'record_ids.npy'))
-    unique_records = np.unique(record_ids)
+    record_ids = record_ids[:len(y)]  # Ensure matching length
     
-    # Train/test split by patient ID
-    np.random.seed(42)
-    np.random.shuffle(unique_records)
-    split_idx = int(len(unique_records) * 0.7)
-    test_records = unique_records[split_idx:]
+    # Perform stratified split
+    _, test_mask = stratified_group_split(X, y, record_ids, test_size=0.3, random_state=42)
     
-    # Create mask for test data
-    test_mask = np.isin(record_ids, test_records)
     X_test = X[test_mask]
     y_test = y[test_mask]
     
