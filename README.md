@@ -1,10 +1,9 @@
 # ECG Heartbeat Classification
+[![Build status](https://github.com/ramp-kits/ecg-heartbeat-classification/actions/workflows/test.yml/badge.svg)](https://github.com/ramp-kits/ecg-heartbeat-classification/actions/workflows/test.yml)
 
-This project implements a machine learning pipeline for classifying ECG heartbeats into different categories according to the Association for the Advancement of Medical Instrumentation (AAMI) standards using the MIT-BIH Arrhythmia Database.
+## Introduction
 
-## Project Overview
-
-Electrocardiogram (ECG) is a critical tool for detecting cardiac abnormalities. This project aims to automatically classify heartbeats into five AAMI standard classes:
+Electrocardiogram (ECG) is a critical tool for detecting cardiac abnormalities. This challenge aims to automatically classify heartbeats from the MIT-BIH Arrhythmia Database into five standard classes defined by the Association for the Advancement of Medical Instrumentation (AAMI):
 
 - **N**: Normal beats
 - **S**: Supraventricular ectopic beats
@@ -12,11 +11,47 @@ Electrocardiogram (ECG) is a critical tool for detecting cardiac abnormalities. 
 - **F**: Fusion beats
 - **Q**: Unknown beats
 
-The classification process involves extracting individual heartbeats from ECG recordings, preprocessing the data, extracting relevant features, and training machine learning models for classification.
+Accurate classification of heartbeats is essential for:
+- Early detection of cardiac arrhythmias
+- Long-term heart monitoring
+- Automated ECG analysis in clinical settings
+- Reducing the workload of healthcare professionals
+
+## Getting started
+
+### Install
+
+To run a submission and the notebook you will need the dependencies listed in `requirements.txt`. You can install the dependencies with the following command-line:
+
+```bash
+pip install -U -r requirements.txt
+```
+
+If you are using `conda`, we provide an `environment.yml` file for similar usage.
+
+### Challenge description
+
+Get started on this RAMP with the [dedicated notebook](ecg_heartbeat_starting_kit.ipynb).
+
+### Test a submission
+
+The submissions need to be located in the `submissions` folder. For instance, for `auto_encoder`, it should be located in `submissions/auto_encoder`.
+
+To run a specific submission, you can use the `ramp-test` command line:
+
+```bash
+ramp-test --submission auto_encoder
+```
+
+You can get more information regarding this command line:
+
+```bash
+ramp-test --help
+```
 
 ## Dataset
 
-The project uses the MIT-BIH Arrhythmia Database, which contains 48 half-hour excerpts of two-channel ambulatory ECG recordings from 47 subjects. The database includes annotations for each heartbeat, which are mapped to the AAMI classes for this project.
+The challenge uses the MIT-BIH Arrhythmia Database, which contains 48 half-hour excerpts of two-channel ambulatory ECG recordings from 47 subjects. The database includes annotations for each heartbeat, which are mapped to the AAMI classes.
 
 ### MIT-BIH to AAMI Mapping
 
@@ -27,41 +62,6 @@ The original MIT-BIH annotations are mapped to AAMI classes as follows:
 - **V (Ventricular ectopic)**: V, E
 - **F (Fusion)**: F
 - **Q (Unknown/paced)**: /, f, Q
-
-## Project Structure
-
-```
-.
-├── data/                        # Directory for storing the MIT-BIH database
-├── submissions/                 # Model implementations
-│   ├── auto_encoder/           # Autoencoder-based feature extraction
-│   │   └── estimator.py        # Implementation of the autoencoder pipeline
-│   └── starting_kit/           # Basic feature extraction
-│       └── estimator.py        # Implementation of the baseline pipeline
-├── .gitignore                  # Git ignore file
-├── problem.py                  # Core functionality for data processing
-├── README.md                   # Project documentation
-└── requirements.txt            # Project dependencies
-```
-
-## Installation
-
-1. Clone the repository:
-   ```
-   git clone https://github.com/username/ecg-heartbeat-classification.git
-   cd ecg-heartbeat-classification
-   ```
-
-2. Create and activate a virtual environment (optional but recommended):
-   ```
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. Install the required dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
 
 ## Data Preprocessing
 
@@ -96,30 +96,6 @@ The advanced approach uses a convolutional autoencoder to learn a compact repres
 - Latent space representation used as features
 - Unsupervised learning to capture inherent signal characteristics
 
-## Training Models
-
-To train and evaluate a model:
-
-```python
-from problem import get_train_data, get_test_data
-from submissions.auto_encoder.estimator import get_estimator
-
-# Load data
-X_train, y_train = get_train_data()
-X_test, y_test = get_test_data()
-
-# Initialize and train the model
-model = get_estimator()
-model.fit(X_train, y_train)
-
-# Evaluate
-score = model.score(X_test, y_test)
-print(f"Accuracy: {score:.4f}")
-
-# Make predictions
-predictions = model.predict(X_test)
-```
-
 ## Performance Metrics
 
 The performance of the models is evaluated using multiple metrics:
@@ -130,20 +106,11 @@ The performance of the models is evaluated using multiple metrics:
 
 ## Class Imbalance
 
-The MIT-BIH dataset has significant class imbalance, with the Normal (N) class being much more frequent than others. The project addresses this through:
+The MIT-BIH dataset has significant class imbalance, with the Normal (N) class being much more frequent than others. The challenge addresses this through:
 
 1. Patient-based stratified splitting to maintain class distribution
 2. Using `class_weight='balanced'` in the SVM classifier
 3. Evaluating with balanced metrics (F1 macro, balanced accuracy)
-
-## Exploratory Data Analysis
-
-Before building models, it's beneficial to perform exploratory data analysis:
-
-1. **Visualize Label Distribution**: Understand the class imbalance
-2. **Display Sample Heartbeats**: Observe morphological differences between classes
-3. **Perform PCA**: Visualize potential class separation in lower dimensions
-4. **Calculate Basic Statistics**: Analyze statistical properties of each class
 
 ## Advanced Features
 
@@ -159,19 +126,29 @@ The autoencoder is trained to minimize reconstruction error, and the latent spac
 
 ### Patient-wise Cross-validation
 
-To ensure robust evaluation, the project implements patient-wise cross-validation using `StratifiedGroupKFold`. This ensures that heartbeats from the same patient don't appear in both training and validation sets.
+To ensure robust evaluation, the challenge implements patient-wise cross-validation using `StratifiedGroupKFold`. This ensures that heartbeats from the same patient don't appear in both training and validation sets.
 
-## Contributing
+## Project Structure
 
-To contribute to the project:
+```
+.
+├── data/                        # Directory for storing the MIT-BIH database
+├── submissions/                 # Model implementations
+│   ├── auto_encoder/           # Autoencoder-based feature extraction
+│   │   └── estimator.py        # Implementation of the autoencoder pipeline
+│   └── starting_kit/           # Basic feature extraction
+│       └── estimator.py        # Implementation of the baseline pipeline
+├── .gitignore                  # Git ignore file
+├── problem.py                  # Core functionality for data processing
+├── README.md                   # Project documentation
+└── requirements.txt            # Project dependencies
+```
 
-1. Fork the repository
-2. Create a new branch (`git checkout -b feature-branch`)
-3. Implement your changes
-4. Run tests
-5. Submit a pull request
+## To go further
 
-## Future Improvements
+You can find more information regarding `ramp-workflow` in the [dedicated documentation](https://paris-saclay-cds.github.io/ramp-docs/ramp-workflow/stable/using_kits.html)
+
+### Future Improvements
 
 Potential areas for enhancement:
 
@@ -181,8 +158,12 @@ Potential areas for enhancement:
 4. **Real-time Classification**: Optimize for real-time processing
 5. **Cross-database Validation**: Test on additional ECG databases
 
-
 ## Acknowledgments
 
-This project uses the MIT-BIH Arrhythmia Database from PhysioNet https://physionet.org/content/mitdb/1.0.0/ and ramp framework https://paris-saclay-cds.github.io/ramp-docs/ramp-workflow/stable/index.html
+This project uses the MIT-BIH Arrhythmia Database from PhysioNet:
 
+Goldberger, A. L., Amaral, L. A. N., Glass, L., Hausdorff, J. M., Ivanov, P. C., Mark, R. G., ... & Stanley, H. E. (2000). PhysioBank, PhysioToolkit, and PhysioNet: Components of a new research resource for complex physiologic signals. Circulation, 101(23), e215-e220.
+
+This project also uses the RAMP framework (Rapid Analytics and Model Prototyping):
+
+Kégl, B., Boucaud, A., Cherti, M., Kazakci, A., Gramfort, A., Lemaitre, G., ... & Van den Bossche, J. (2018). The RAMP framework: from reproducibility to transparency in the design and optimization of scientific workflows. In ICML Workshop on Enabling Reproducibility in Machine Learning.
