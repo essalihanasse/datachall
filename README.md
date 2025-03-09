@@ -1,5 +1,5 @@
 # ECG Heartbeat Classification
-[![Build status](https://github.com/ramp-kits/ecg-heartbeat-classification/actions/workflows/test.yml/badge.svg)](https://github.com/ramp-kits/ecg-heartbeat-classification/actions/workflows/test.yml)
+
 
 ## Introduction
 
