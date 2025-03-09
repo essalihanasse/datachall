@@ -160,10 +160,6 @@ Potential areas for enhancement:
 
 ## Acknowledgments
 
-This project uses the MIT-BIH Arrhythmia Database from PhysioNet:
+This project uses the MIT-BIH Arrhythmia Database from PhysioNet https://physionet.org/content/mitdb/1.0.0/.
 
-Goldberger, A. L., Amaral, L. A. N., Glass, L., Hausdorff, J. M., Ivanov, P. C., Mark, R. G., ... & Stanley, H. E. (2000). PhysioBank, PhysioToolkit, and PhysioNet: Components of a new research resource for complex physiologic signals. Circulation, 101(23), e215-e220.
-
-This project also uses the RAMP framework (Rapid Analytics and Model Prototyping):
-
-Kégl, B., Boucaud, A., Cherti, M., Kazakci, A., Gramfort, A., Lemaitre, G., ... & Van den Bossche, J. (2018). The RAMP framework: from reproducibility to transparency in the design and optimization of scientific workflows. In ICML Workshop on Enabling Reproducibility in Machine Learning.
+This project also uses the RAMP framework (Rapid Analytics and Model Prototyping) https://paris-saclay-cds.github.io/ramp-docs/ramp-workflow/stable/index.html .
