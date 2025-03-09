@@ -1,0 +1,56 @@
+name: ecg-heartbeat-classification
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  # Core Python and scientific computing packages
+  - python=3.12
+  - numpy>=2.1.0
+  - pandas>=2.2.3
+  - scipy>=1.14.0
+  - scikit-learn>=1.6.0
+  
+  # Deep learning frameworks
+  - tensorflow>=2.17.0
+  - tensorflow-base
+  - keras>=3.4.1
+  - tensorboard>=2.17.0
+  
+  # Visualization
+  - matplotlib>=3.10.0
+  - seaborn>=0.13.2
+  
+  # Data manipulation and processing
+  - joblib>=1.4.2
+  - cloudpickle>=3.0.0
+  - tqdm>=4.66.4
+  
+  # Python development tools
+  - ipython>=8.26.0
+  - jupyter>=1.0.0
+  - jupyterlab>=4.2.3
+  - pytest>=7.4.4
+  
+  # Statistics and signal processing
+  - statsmodels>=0.14.4
+  - h5py>=3.11.0
+  
+  # Pip packages (including ones that might not be available in conda)
+  - pip
+  - pip:
+    # RAMP framework
+    - ramp-workflow>=0.7.0
+    
+    # ECG-specific packages
+    - wfdb>=4.2.0
+    
+    # Additional packages that might be needed
+    - requests>=2.31.0
+    - pyyaml>=6.0.1
+    
+    # For imbalanced datasets
+    - imbalanced-learn
+    
+    # Optional PyTorch support (if needed)
+    - torch>=2.3.1
+    - torchvision>=0.18.1
